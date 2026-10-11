@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -13,13 +13,13 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
   const { isAuthenticated, user, loading, hasRole } = useAuth()
   const router = useRouter()
 
-  const hasRequiredRole = () => {
+  const hasRequiredRole = useCallback(() => {
     if (!requiredRole) return true
     if (typeof requiredRole === 'string') {
       return hasRole(requiredRole)
     }
     return requiredRole.some(role => user?.role === role)
-  }
+  }, [requiredRole, hasRole, user?.role])
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -27,7 +27,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     } else if (!loading && isAuthenticated && requiredRole && !hasRequiredRole()) {
       router.push('/dashboard')
     }
-  }, [isAuthenticated, loading, router, requiredRole, hasRole, hasRequiredRole])
+  }, [isAuthenticated, loading, router, requiredRole, hasRequiredRole])
 
   if (loading) {
     return (
@@ -49,7 +49,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 font-semibold">Access Denied</p>
-          <p className="text-gray-600 mt-2">You don't have permission to access this page.</p>
+          <p className="text-gray-600 mt-2">You don&apos;t have permission to access this page.</p>
         </div>
       </div>
     )

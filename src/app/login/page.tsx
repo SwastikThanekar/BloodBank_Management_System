@@ -121,7 +121,7 @@ export default function LoginPage() {
           </div>
           <div className="mt-2 text-center text-sm">
             <Link href="/register" className="text-[#D32F2F] hover:underline">
-              Don't have an account? Register here
+              Don&apos;t have an account? Register here
             </Link>
           </div>
         </CardContent>
