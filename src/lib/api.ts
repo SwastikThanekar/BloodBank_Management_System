@@ -1,7 +1,9 @@
 import { storage } from './storage';
 
-// Update this URL to match your backend server
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+// In Vercel services deployment, use relative URL for API calls
+// This allows the rewrites to route /api/* to the backend service
+// For local development, use the localhost backend
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 // Generic API request helper
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
