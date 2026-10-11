@@ -1,3 +1,9 @@
 node_modules/
 bloodbank.db
+*.db
+*.db-shm
+*.db-wal
 *.log
+.env
+.env.local
+.env.production

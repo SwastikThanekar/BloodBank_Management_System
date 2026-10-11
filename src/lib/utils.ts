@@ -6,9 +6,36 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Date formatting utilities
-export function formatDate(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date
-  if (isNaN(d.getTime())) return 'Invalid Date'
+export function formatDate(date: string | Date | null | undefined): string {
+  if (!date || date === '') return 'N/A'
+  
+  let d: Date
+  if (typeof date === 'string') {
+    // Handle different date formats
+    if (date.includes('T')) {
+      // ISO format with time
+      d = new Date(date)
+    } else if (date.includes('-')) {
+      // YYYY-MM-DD format from HTML date input
+      const [year, month, day] = date.split('-').map(Number)
+      d = new Date(year, month - 1, day)
+    } else {
+      d = new Date(date)
+    }
+  } else {
+    d = date
+  }
+  
+  // Check if the date is invalid
+  if (isNaN(d.getTime())) {
+    return 'Invalid Date'
+  }
+  
+  // Check if the year is reasonable (between 1900 and 2100)
+  const year = d.getFullYear()
+  if (year < 1900 || year > 2100) {
+    return 'Invalid Date'
+  }
   
   return d.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -17,8 +44,23 @@ export function formatDate(date: string | Date): string {
   })
 }
 
-export function formatDateTime(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date
+export function formatDateTime(date: string | Date | null | undefined): string {
+  if (!date || date === '') return 'N/A'
+  
+  let d: Date
+  if (typeof date === 'string') {
+    if (date.includes('T')) {
+      d = new Date(date)
+    } else if (date.includes('-')) {
+      const [year, month, day] = date.split('-').map(Number)
+      d = new Date(year, month - 1, day)
+    } else {
+      d = new Date(date)
+    }
+  } else {
+    d = date
+  }
+  
   if (isNaN(d.getTime())) return 'Invalid Date'
   
   return d.toLocaleString('en-US', {
@@ -30,8 +72,23 @@ export function formatDateTime(date: string | Date): string {
   })
 }
 
-export function formatTime(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date
+export function formatTime(date: string | Date | null | undefined): string {
+  if (!date || date === '') return 'N/A'
+  
+  let d: Date
+  if (typeof date === 'string') {
+    if (date.includes('T')) {
+      d = new Date(date)
+    } else if (date.includes('-')) {
+      const [year, month, day] = date.split('-').map(Number)
+      d = new Date(year, month - 1, day)
+    } else {
+      d = new Date(date)
+    }
+  } else {
+    d = date
+  }
+  
   if (isNaN(d.getTime())) return 'Invalid Date'
   
   return d.toLocaleTimeString('en-US', {
@@ -40,8 +97,23 @@ export function formatTime(date: string | Date): string {
   })
 }
 
-export function isExpiringSoon(date: string | Date, daysThreshold: number = 30): boolean {
-  const d = typeof date === 'string' ? new Date(date) : date
+export function isExpiringSoon(date: string | Date | null | undefined, daysThreshold: number = 30): boolean {
+  if (!date || date === '') return false
+  
+  let d: Date
+  if (typeof date === 'string') {
+    if (date.includes('T')) {
+      d = new Date(date)
+    } else if (date.includes('-')) {
+      const [year, month, day] = date.split('-').map(Number)
+      d = new Date(year, month - 1, day)
+    } else {
+      d = new Date(date)
+    }
+  } else {
+    d = date
+  }
+  
   if (isNaN(d.getTime())) return false
   
   const today = new Date()
@@ -51,8 +123,23 @@ export function isExpiringSoon(date: string | Date, daysThreshold: number = 30):
   return diffDays > 0 && diffDays <= daysThreshold
 }
 
-export function isExpired(date: string | Date): boolean {
-  const d = typeof date === 'string' ? new Date(date) : date
+export function isExpired(date: string | Date | null | undefined): boolean {
+  if (!date || date === '') return false
+  
+  let d: Date
+  if (typeof date === 'string') {
+    if (date.includes('T')) {
+      d = new Date(date)
+    } else if (date.includes('-')) {
+      const [year, month, day] = date.split('-').map(Number)
+      d = new Date(year, month - 1, day)
+    } else {
+      d = new Date(date)
+    }
+  } else {
+    d = date
+  }
+  
   if (isNaN(d.getTime())) return false
   
   return d < new Date()

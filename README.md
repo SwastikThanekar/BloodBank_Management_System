@@ -49,6 +49,7 @@ A comprehensive web application for managing blood bank operations, built with N
 ### Prerequisites
 - Node.js 18+ installed
 - npm or yarn package manager
+- Docker and Docker Compose (for Docker deployment)
 
 ### Installation
 
@@ -65,6 +66,20 @@ cd ..
 ```
 
 ### Running the Application
+
+#### Option 1: Docker Compose (Recommended)
+
+```bash
+# Copy environment file
+cp .env.docker .env
+
+# Build and start both services
+docker-compose up -d
+
+# Access at http://localhost:3000
+```
+
+#### Option 2: Local Development
 
 1. Start the backend server (in a new terminal):
 ```bash
@@ -149,6 +164,21 @@ src/
 ### Typography
 - **Font**: Inter
 - **Sizes**: Responsive scaling
+
+## Deployment
+
+This project includes Docker support for easy deployment. See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions including:
+
+- **Docker Compose**: Deploy both frontend and backend together
+- **Vercel + Railway**: Deploy frontend to Vercel and backend to Railway
+- **Netlify + Heroku**: Alternative cloud deployment
+- **VPS**: Deploy to your own server with Nginx
+
+Quick Docker deployment:
+```bash
+cp .env.docker .env
+docker-compose up -d
+```
 
 ## Future Enhancements
 

@@ -3,10 +3,11 @@ const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 const app = express();
-const PORT = 5000;
-const JWT_SECRET = 'bloodbank-secret-key-change-in-production';
+const PORT = process.env.PORT || 5000;
+const JWT_SECRET = process.env.JWT_SECRET || 'bloodbank-secret-key-change-in-production';
 
 // Middleware
 app.use(cors());
@@ -29,12 +30,18 @@ app.get('/', (req, res) => {
   });
 });
 
+// Health check endpoint for deployment platforms
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Database initialization
-const db = new sqlite3.Database('./bloodbank.db', (err) => {
+const dbPath = process.env.DATABASE_PATH || './bloodbank.db';
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err.message);
   } else {
-    console.log('Connected to SQLite database');
+    console.log('Connected to SQLite database at:', dbPath);
   }
 });
 
@@ -161,9 +168,14 @@ function insertSampleData() {
       if (row.count === 0) {
         const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
         bloodGroups.forEach(group => {
+          // Set expiry date to 30 days from now in YYYY-MM-DD format
+          const expiryDate = new Date();
+          expiryDate.setDate(expiryDate.getDate() + 30);
+          const formattedDate = expiryDate.toISOString().split('T')[0];
+          
           db.run(`INSERT INTO blood_inventory (bloodGroup, units, status, expiryDate) 
-            VALUES (?, ?, 'Available', date('now', '+30 days'))`, 
-            [group, Math.floor(Math.random() * 50) + 20]);
+            VALUES (?, ?, 'Available', ?)`, 
+            [group, Math.floor(Math.random() * 50) + 20, formattedDate]);
         });
       }
     });

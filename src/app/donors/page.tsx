@@ -397,7 +397,7 @@ export default function DonorsPage() {
                         <p className="font-medium">Blood Donation</p>
                         <p className="text-sm text-gray-600">{selectedDonor.bloodGroup}</p>
                       </div>
-                      <Badge variant="success">{selectedDonor.lastDonationDate}</Badge>
+                      <Badge variant="success">{formatDate(selectedDonor.lastDonationDate)}</Badge>
                     </div>
                   </div>
                 ) : (

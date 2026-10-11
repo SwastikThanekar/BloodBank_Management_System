@@ -2,13 +2,140 @@
 
 This guide covers deploying the Blood Bank Management System to production hosting platforms.
 
+## Quick Start (Docker - Recommended)
+
+For the fastest deployment, use Docker Compose:
+
+```bash
+# Copy environment file
+cp .env.docker .env
+
+# Build and start
+docker-compose up -d
+
+# Access at http://localhost:3000
+```
+
+See **Option 0: Docker** below for detailed instructions.
+
 ## Architecture Overview
 
 The system consists of two parts:
 - **Frontend**: Next.js application (can be deployed to Vercel, Netlify, etc.)
 - **Backend**: Node.js/Express server with SQLite database (needs server hosting)
 
+## Deployment Files Added
+
+The following files have been added to make deployment easier:
+
+- **Dockerfile** (root): Multi-stage build for Next.js frontend
+- **backend/Dockerfile**: Dockerfile for Express backend
+- **docker-compose.yml**: Orchestrates both frontend and backend
+- **.env.example**: Frontend environment variables template
+- **backend/.env.example**: Backend environment variables template
+- **.env.docker**: Docker Compose environment variables template
+- **backend/Procfile**: Heroku deployment configuration
+- **.dockerignore** (root & backend): Files to exclude from Docker builds
+- **Updated .gitignore**: Excludes database files and environment files
+
 ## Deployment Options
+
+### Option 0: Docker (Recommended for easy deployment)
+
+This is the simplest deployment option using Docker Compose to run both frontend and backend together.
+
+#### Prerequisites
+- Docker installed on your machine or server
+- Docker Compose installed
+
+#### Quick Start with Docker
+
+1. **Copy environment file**
+   ```bash
+   cp .env.docker .env
+   ```
+
+2. **Update the .env file** with your production values:
+   - Change `JWT_SECRET` to a strong, random secret
+   - Update `NEXT_PUBLIC_API_URL` if deploying to a domain
+
+3. **Build and start containers**
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend: http://localhost:5000
+
+5. **View logs**
+   ```bash
+   docker-compose logs -f
+   ```
+
+6. **Stop the application**
+   ```bash
+   docker-compose down
+   ```
+
+#### Deploying to a Server
+
+1. **Transfer files to your server**
+   ```bash
+   rsync -avz ./ user@your-server:/path/to/bloodbank/
+   ```
+
+2. **SSH into your server**
+   ```bash
+   ssh user@your-server
+   cd /path/to/bloodbank
+   ```
+
+3. **Update .env with production values**
+   ```bash
+   cp .env.docker .env
+   nano .env  # Edit with your production values
+   ```
+
+4. **Start with Docker Compose**
+   ```bash
+   docker-compose up -d
+   ```
+
+5. **Set up Nginx reverse proxy** (optional but recommended)
+   ```nginx
+   server {
+       listen 80;
+       server_name your-domain.com;
+
+       location / {
+           proxy_pass http://localhost:3000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+       }
+
+       location /api {
+           proxy_pass http://localhost:5000;
+           proxy_http_version 1.1;
+           proxy_set_header Host $host;
+       }
+   }
+   ```
+
+#### Docker Volume Persistence
+The backend database is stored in a Docker volume named `backend-data`, which persists even if containers are stopped or removed. To backup the database:
+```bash
+docker cp bloodbank-backend:/app/data/bloodbank.db ./backup.db
+```
+
+#### Troubleshooting Docker Deployment
+- **Container won't start**: Check logs with `docker-compose logs`
+- **Database issues**: Ensure the volume is properly mounted
+- **Port conflicts**: Change ports in docker-compose.yml if needed
+- **Permission issues**: Ensure proper file permissions on mounted volumes
 
 ### Option 1: Vercel (Frontend) + Railway/Render (Backend)
 
@@ -38,26 +165,19 @@ The system consists of two parts:
 
 #### Backend Deployment (Railway)
 
-1. **Create a `Dockerfile` for the backend**
-   ```dockerfile
-   FROM node:18-alpine
-   WORKDIR /app
-   COPY package*.json ./
-   RUN npm install --production
-   COPY . .
-   EXPOSE 5000
-   CMD ["node", "server.js"]
-   ```
+Railway now supports Docker natively, so you can use the included Dockerfile:
 
-2. **Deploy to Railway**
+1. **Deploy to Railway**
    - Go to [railway.app](https://railway.app)
    - Click "New Project" → "Deploy from GitHub repo"
    - Select your repository
-   - Configure the backend service
-   - Railway will automatically detect the Node.js app
-   - Set environment variables if needed
+   - Select the backend folder as the root directory
+   - Railway will automatically detect the Dockerfile
+   - Set environment variables:
+     - `JWT_SECRET`: Your production secret
+     - `PORT`: 5000
 
-3. **Get your backend URL**
+2. **Get your backend URL**
    - Railway will provide a URL like `https://your-backend.railway.app`
    - Use this URL in your Vercel frontend configuration
 
@@ -153,15 +273,33 @@ For complete control, deploy both frontend and backend on a VPS like DigitalOcea
 ## Environment Variables
 
 ### Frontend (.env)
+Copy `.env.example` to `.env` and update:
+
 ```
 NEXT_PUBLIC_API_URL=https://your-backend-domain.com
 ```
 
 ### Backend (.env for production)
+Copy `backend/.env.example` to `backend/.env` and update:
+
 ```
 PORT=5000
 JWT_SECRET=your-secure-random-secret-key
 NODE_ENV=production
+DATABASE_PATH=./bloodbank.db
+```
+
+### Docker Compose (.env)
+Copy `.env.docker` to `.env` and update:
+
+```
+JWT_SECRET=your-secure-random-secret-key
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+
+**Important**: Always use a strong, random JWT_SECRET in production. You can generate one using:
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ## Security Considerations
@@ -204,6 +342,8 @@ For production, consider migrating from SQLite to PostgreSQL:
 - [ ] Set up SSL certificates
 - [ ] Test payment flows (if applicable)
 - [ ] Configure email services (if needed)
+- [ ] Verify health check endpoint is accessible (http://your-domain.com/health)
+- [ ] Test Docker deployment if using Option 0
 
 ## Troubleshooting
 
@@ -217,6 +357,23 @@ For production, consider migrating from SQLite to PostgreSQL:
 - **Port Conflicts**: Ensure ports 3000 and 5000 are available
 - **CORS Errors**: Verify CORS configuration
 - **Memory Issues**: Monitor server resources
+
+### Docker Issues
+- **Container won't start**: Run `docker-compose logs` to see error messages
+- **Database not persisting**: Check volume mounting in docker-compose.yml
+- **Health check failing**: Ensure backend is accessible on port 5000
+- **Build errors**: Verify Dockerfile syntax and dependencies
+
+### Health Check
+The backend includes a health check endpoint at `/health` that returns:
+```json
+{
+  "status": "ok",
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+Use this to verify your backend is running correctly.
 
 ## Monitoring and Maintenance
 

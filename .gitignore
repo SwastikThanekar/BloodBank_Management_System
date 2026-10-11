@@ -27,6 +27,7 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.docker
 
 # vercel
 .vercel
@@ -37,4 +38,8 @@ next-env.d.ts
 
 # backend
 backend/bloodbank.db
+backend/*.db
+backend/*.db-shm
+backend/*.db-wal
 backend/node_modules
+backend/.env

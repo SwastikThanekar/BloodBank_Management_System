@@ -69,7 +69,9 @@ export default function ReportsPage() {
 
   // Process requests data for approval trends
   const requestTrends = requests.reduce((acc: any[], request) => {
-    const month = new Date(request.createdAt || request.requestDate).toLocaleString('default', { month: 'short' })
+    const dateValue = request.createdAt || request.requestDate
+    if (!dateValue) return acc
+    const month = new Date(dateValue).toLocaleString('default', { month: 'short' })
     const existing = acc.find((x) => x.month === month)
     if (existing) {
       if (request.status === 'Approved') existing.approved++
