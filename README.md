@@ -79,7 +79,7 @@ docker-compose up -d
 # Access at http://localhost:3000
 ```
 
-#### Option 2: Local Development
+#### Option 2: Local Development (localhost only)
 
 1. Start the backend server (in a new terminal):
 ```bash
@@ -95,6 +95,45 @@ npm run dev
 The frontend will run on http://localhost:3000
 
 3. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+#### Option 3: Local Development (network accessible)
+
+To access the application from other devices on your local network (192.168.x.x):
+
+1. Start the backend server (in a new terminal):
+```bash
+cd backend
+npm run dev
+```
+The backend will run on http://0.0.0.0:5000
+
+2. Start the frontend development server (in another terminal):
+```bash
+npm run dev:network
+```
+The frontend will run on http://0.0.0.0:3000
+
+3. Find your computer's IP address:
+```bash
+# Windows
+ipconfig
+
+# Linux/Mac
+ifconfig
+```
+
+4. Update `.env` file in the root directory:
+```
+NEXT_PUBLIC_API_URL=http://YOUR_IP:5000/api
+```
+Replace `YOUR_IP` with your actual IP (e.g., `192.168.1.100`)
+
+5. Access from other devices on your network:
+```
+http://YOUR_IP:3000
+```
+
+**Note:** Both frontend and backend must be started before accessing from network devices.
 
 ### Default Credentials
 - **Admin**: admin@bloodbank.com / admin123
